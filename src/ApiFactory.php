@@ -191,7 +191,7 @@ class ApiFactory
             $service->setDescription($docsArray[$serviceClassName]['description']);
         }
 
-        $route = $this->config['router']['routes'][$serviceData['route_name']]['options']['route'];
+        $route = @$this->config['router']['routes'][$serviceData['route_name']]['options']['route'];
         $service->setRoute(str_replace('[/v:version]', '', $route)); // remove internal version prefix, hacky
         if ($isRpc) {
             $hasSegments = $this->hasOptionalSegments($route);
@@ -225,17 +225,25 @@ class ApiFactory
             if ($isRest) {
                 $description = isset($docsArray[$serviceClassName]['collection'][$httpMethod]['description'])
                     ? $docsArray[$serviceClassName]['collection'][$httpMethod]['description']
-                    : '';
+                    : (function ($httpMethod) {
+                        if ($httpMethod === 'GET') {
+                            return 'Fetch all';
+                        }
+                        if ($httpMethod === 'POST') {
+                            return 'Create';
+                        }
+                        return $httpMethod;
+                    })($httpMethod);
                 $op->setDescription($description);
 
                 $requestDescription = isset($docsArray[$serviceClassName]['collection'][$httpMethod]['request'])
                     ? $docsArray[$serviceClassName]['collection'][$httpMethod]['request']
-                    : '';
+                    : '[request description]';
                 $op->setRequestDescription($requestDescription);
 
                 $responseDescription = isset($docsArray[$serviceClassName]['collection'][$httpMethod]['response'])
                     ? $docsArray[$serviceClassName]['collection'][$httpMethod]['response']
-                    : '';
+                    : '[response description]';
 
                 $op->setResponseDescription($responseDescription);
                 $op->setRequiresAuthorization(
@@ -255,17 +263,17 @@ class ApiFactory
             if ($isRpc) {
                 $description = isset($docsArray[$serviceClassName][$httpMethod]['description'])
                     ? $docsArray[$serviceClassName][$httpMethod]['description']
-                    : '';
+                    : 'RPC';
                 $op->setDescription($description);
 
                 $requestDescription = isset($docsArray[$serviceClassName][$httpMethod]['request'])
                     ? $docsArray[$serviceClassName][$httpMethod]['request']
-                    : '';
+                    : '[request description]';
                 $op->setRequestDescription($requestDescription);
 
                 $responseDescription = isset($docsArray[$serviceClassName][$httpMethod]['response'])
                     ? $docsArray[$serviceClassName][$httpMethod]['response']
-                    : '';
+                    : '[response description]';
                 $op->setResponseDescription($responseDescription);
 
                 $op->setRequiresAuthorization(
@@ -295,17 +303,28 @@ class ApiFactory
 
                 $description = isset($docsArray[$serviceClassName]['entity'][$httpMethod]['description'])
                     ? $docsArray[$serviceClassName]['entity'][$httpMethod]['description']
-                    : '';
+                    : (function ($httpMethod) {
+                        if ($httpMethod === 'GET') {
+                            return 'Fetch';
+                        }
+                        if ($httpMethod === 'PATCH') {
+                            return 'Update';
+                        }
+                        if ($httpMethod === 'DELETE') {
+                            return 'Delete';
+                        }
+                        return $httpMethod;
+                    })($httpMethod);
                 $op->setDescription($description);
 
                 $requestDescription = isset($docsArray[$serviceClassName]['entity'][$httpMethod]['request'])
                     ? $docsArray[$serviceClassName]['entity'][$httpMethod]['request']
-                    : '';
+                    : '[request description]';
                 $op->setRequestDescription($requestDescription);
 
                 $responseDescription = isset($docsArray[$serviceClassName]['entity'][$httpMethod]['response'])
                     ? $docsArray[$serviceClassName]['entity'][$httpMethod]['response']
-                    : '';
+                    : '[response description]';
                 $op->setResponseDescription($responseDescription);
 
                 $op->setRequiresAuthorization(
